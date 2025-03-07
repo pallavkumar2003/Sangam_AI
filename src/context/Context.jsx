@@ -1,69 +1,88 @@
-import { createContext, useState } from "react"
-import run from "../config/Gemini"
+import { createContext, useState } from "react";
+import chatCompletion_meta from "../config/metalama";
+import chatCompletion_mistral from "../config/mistral";
+import chatCompletion_perplexy from "../config/perplexy";
+import chatCompletion_deep from "../config/deepseek";
+import chatCompletion_qwen from "../config/Qwen";
+import chatCompletion_gemini from "../config/Gemini";
+import chatCompletion_ibm from "../config/IBM";
 
-export const Context = createContext()
+export const Context = createContext();
 
 const ContextProvider = (props) => {
-  const [input, setInput] = useState("")
-  const [recentPrompt, setRecentPrompt] = useState("")
-  const [prevPrompt, setPrevPrompt] = useState([])
-  const [showResult, setShowResult] = useState(false)
-  const [loading, setLoading] = useState(false)
-  const [resultData, setResultData] = useState("")
+  const [input, setInput] = useState("");
+  const [recentPrompt, setRecentPrompt] = useState("");
+  const [prevPrompt, setPrevPrompt] = useState([]);
+  const [showResult, setShowResult] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [resultData, setResultData] = useState("");
+  const [chooseAI, setChooseAI] = useState("gemini"); // ✅ Default AI selected
 
   const delayPara = (index, nextWord) => {
-    setTimeout(function () {
-      setResultData((prev) => prev + nextWord)
-    }, 75 * index)
-  }
+    setTimeout(() => {
+      setResultData((prev) => prev + nextWord);
+    }, 75 * index);
+  };
 
   const newChat = () => {
-    setLoading(false)
-    setShowResult(false)
-  }
+    setLoading(false);
+    setShowResult(false);
+    setResultData("");
+  };
+
+  const getAIResponse = async (prompt) => {
+    switch (chooseAI) {
+      case "meta-llama":
+        return await chatCompletion_meta(prompt);
+      case "mistral":
+        return await chatCompletion_mistral(prompt);
+      case "perplexy":
+        return await chatCompletion_perplexy(prompt);
+      case "deepseek":
+        return await chatCompletion_deep(prompt);
+      case "qwen":
+        return await chatCompletion_qwen(prompt);
+        case "ibm":
+        return await chatCompletion_qwen(prompt);
+        case "ibm_granite":
+        return await chatCompletion_qwen(prompt);
+        case "gemma":
+        return await chatCompletion_qwen(prompt);
+      case "gemini":
+      default:
+        return await chatCompletion_gemini(prompt);
+    }
+  };
 
   const onSent = async (prompt) => {
-    setResultData("")
-    setLoading(true)
-    setShowResult(true)
+    setResultData("");
+    setLoading(true);
+    setShowResult(true);
 
-    let response
-
+    let responseText;
     if (prompt !== undefined) {
-      response = await run(prompt)
-
-      setRecentPrompt(prompt)
+      responseText = await getAIResponse(prompt);
+      setRecentPrompt(prompt);
     } else {
-      setPrevPrompt((prev) => [...prev, input])
-      setRecentPrompt(input)
-
-      response = await run(input)
+      setPrevPrompt((prev) => [...prev, input]);
+      setRecentPrompt(input);
+      responseText = await getAIResponse(input);
     }
 
-    let responseArray = response.split("**")
-    let newResponse = ""
+    if (!responseText) {
+      setResultData("Error: No response received.");
+      setLoading(false);
+      return;
+    }
 
+    let responseArray = responseText.split(" ");
     for (let i = 0; i < responseArray.length; i++) {
-      if (i == 0 || i % 2 !== 1) {
-        newResponse += responseArray[i]
-      } else {
-        newResponse += "<b>" + responseArray[i] + "</b>"
-      }
+      delayPara(i, responseArray[i] + " ");
     }
 
-    let newResponse2 = newResponse.split("*").join("</br>")
-
-    let newResponseArray = newResponse2.split(" ")
-
-    for (let i = 0; i < newResponseArray.length; i++) {
-      const nextWord = newResponseArray[i]
-
-      delayPara(i, nextWord + " ")
-    }
-
-    setLoading(false)
-    setInput("")
-  }
+    setLoading(false);
+    setInput("");
+  };
 
   const contextValue = {
     input,
@@ -77,11 +96,13 @@ const ContextProvider = (props) => {
     resultData,
     onSent,
     newChat,
-  }
+    chooseAI,
+    setChooseAI,
+  };
 
   return (
     <Context.Provider value={contextValue}>{props.children}</Context.Provider>
-  )
-}
+  );
+};
 
-export default ContextProvider
+export default ContextProvider;

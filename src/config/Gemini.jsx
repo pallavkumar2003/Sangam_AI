@@ -8,7 +8,7 @@ const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
 const genAI = new GoogleGenerativeAI(apiKey);
 
 const model = genAI.getGenerativeModel({
-  model: "gemini-2.0-flash", // or "gemini-pro"
+  model: "gemini-2.0-flash", 
 });
 
 const generationConfig = {
@@ -19,7 +19,7 @@ const generationConfig = {
   responseMimeType: "text/plain",
 };
 
-async function run(prompt) {
+async function chatCompletion_gemini(prompt) {
   try {
     const chatSession = model.startChat({
       generationConfig,
@@ -29,11 +29,11 @@ async function run(prompt) {
     const result = await chatSession.sendMessage(prompt);
     const response = result.response.text();
     console.log(response);
-    return response; // Return the response
+    return response; 
   } catch (error) {
     console.error("Error during Gemini API call:", error);
-    return null; // Return null or handle the error appropriately
+    return null; 
   }
 }
 
-export default run;
+export default chatCompletion_gemini;

@@ -28,7 +28,7 @@ const MainContent = () => {
   return (
     <div className="flex-1 min-h-screen pb-[15vh] relative">
       <div className="flex items-center justify-between text-xl p-5 text-slate-700">
-        <p>Gemini</p>
+        <p>One AI</p>
         <FaUserCircle />
       </div>
 
